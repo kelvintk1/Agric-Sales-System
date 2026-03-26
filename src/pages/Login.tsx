@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -13,8 +13,32 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
+  const [displayedText, setDisplayedText] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const fullText = 'Data Entry\nMade\nConvenient';
+
+  useEffect(() => {
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i <= fullText.length) {
+        setDisplayedText(fullText.slice(0, i));
+        i++;
+      } else {
+        clearInterval(timer);
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530);
+    return () => clearInterval(cursorTimer);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,9 +165,15 @@ const Login = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-4xl font-display font-bold text-primary-foreground mb-4 leading-tight"
+            className="text-4xl font-display font-bold text-primary-foreground mb-4 leading-tight text-left"
           >
-            Data Entry<br />Made<br />Convenient
+            {displayedText.split('\n').map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < displayedText.split('\n').length - 1 && <br />}
+              </span>
+            ))}
+            <span className={`inline-block w-[3px] h-[1em] bg-accent ml-1 align-middle ${showCursor ? 'opacity-100' : 'opacity-0'}`} />
           </motion.h2>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
