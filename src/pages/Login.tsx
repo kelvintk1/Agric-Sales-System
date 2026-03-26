@@ -22,23 +22,24 @@ const Login = () => {
 
   useEffect(() => {
     let i = 0;
-    let deleting = false;
+    let phase: 'typing' | 'pausing' | 'deleting' = 'typing';
+    let pauseCount = 0;
+
     const timer = setInterval(() => {
-      if (!deleting) {
-        if (i <= fullText.length) {
-          setDisplayedText(fullText.slice(0, i));
-          i++;
-        } else {
-          deleting = true;
-          setTimeout(() => {}, 1200);
+      if (phase === 'typing') {
+        setDisplayedText(fullText.slice(0, i));
+        i++;
+        if (i > fullText.length) {
+          phase = 'pausing';
+          pauseCount = 0;
         }
+      } else if (phase === 'pausing') {
+        pauseCount++;
+        if (pauseCount > 15) phase = 'deleting';
       } else {
-        if (i > 0) {
-          i--;
-          setDisplayedText(fullText.slice(0, i));
-        } else {
-          deleting = false;
-        }
+        i--;
+        setDisplayedText(fullText.slice(0, i));
+        if (i <= 0) phase = 'typing';
       }
     }, 80);
     return () => clearInterval(timer);
