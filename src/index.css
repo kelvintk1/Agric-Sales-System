@@ -121,7 +121,7 @@
   }
 
   .gradient-login {
-    background: linear-gradient(135deg, #207018 0%, #EFFF09 45%, #3DD62F 100%);
+    background: linear-gradient(135deg, #207018 0%, #2a8a1e 30%, #EFFF09 60%, #3DD62F 80%, #207018 100%);
     background-size: 200% 200%;
     animation: gradient-shift 6s ease infinite;
   }
