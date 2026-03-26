@@ -121,6 +121,6 @@
   }
 
   .gradient-login {
-    background: linear-gradient(135deg, hsl(130, 60%, 30%), hsl(90, 50%, 45%));
+    background: linear-gradient(135deg, #207018 0%, #EFFF09 45%, #3DD62F 100%);
   }
 }
