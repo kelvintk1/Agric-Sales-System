@@ -28,7 +28,11 @@ const salespersonLinks = [
   { label: 'Sales Entry', icon: ShoppingCart, path: '/sales/entry' },
 ];
 
-export const AppSidebar = () => {
+interface AppSidebarProps {
+  onNavigate?: () => void;
+}
+
+export const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,6 +45,11 @@ export const AppSidebar = () => {
     navigate('/');
   };
 
+  const handleNav = (path: string) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
   return (
     <>
       <motion.aside
@@ -48,6 +57,7 @@ export const AppSidebar = () => {
         animate={{ x: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="gradient-sidebar w-[220px] min-h-screen flex flex-col text-sidebar-foreground fixed left-0 top-0 z-40"
+        style={onNavigate ? { position: 'relative', zIndex: 'auto' } : undefined}
       >
         {/* Header */}
         <div className="p-5 pb-3">
@@ -70,7 +80,7 @@ export const AppSidebar = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.08 }}
-                onClick={() => navigate(link.path)}
+                onClick={() => handleNav(link.path)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-sidebar-accent text-sidebar-primary'

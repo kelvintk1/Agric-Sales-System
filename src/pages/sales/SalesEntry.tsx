@@ -22,6 +22,10 @@ const SalesEntry = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!productId || !paymentMethod) {
+      toast.error('Please fill all required fields');
+      return;
+    }
     toast.success('Sale logged successfully!', {
       description: `${name} purchased ${bags} bags of ${selectedProduct?.name}.`,
     });
@@ -36,7 +40,7 @@ const SalesEntry = () => {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-display font-bold text-primary">Sales Entry</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-primary">Sales Entry</h1>
           <p className="text-sm text-muted-foreground">Log your sales into database for convenient tracking</p>
         </div>
 
@@ -45,9 +49,9 @@ const SalesEntry = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           onSubmit={handleSave}
-          className="bg-card rounded-xl border p-6 shadow-sm space-y-5"
+          className="bg-card rounded-xl border p-4 sm:p-6 shadow-sm space-y-5"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium">Name</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Customer name" className="mt-1" required />
@@ -102,7 +106,7 @@ const SalesEntry = () => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" className="bg-primary text-primary-foreground px-10">Save</Button>
+            <Button type="submit" className="bg-primary text-primary-foreground px-8 sm:px-10">Save</Button>
             <Button type="button" variant="outline" onClick={() => { setName(''); setContact(''); setProductId(''); setPaymentMethod(''); setBags(''); }}>Cancel</Button>
           </div>
         </motion.form>

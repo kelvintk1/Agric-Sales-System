@@ -25,6 +25,10 @@ const AddProduct = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name || !price || !quantity) {
+      toast.error('Please fill all required fields');
+      return;
+    }
     toast.success('Product added successfully!', {
       description: `${name} has been added to inventory.`,
     });
@@ -41,7 +45,7 @@ const AddProduct = () => {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-display font-bold text-primary">Add Product</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-primary">Add Product</h1>
           <p className="text-sm text-muted-foreground">Add a new product to your inventory</p>
         </div>
 
@@ -50,14 +54,14 @@ const AddProduct = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           onSubmit={handleSave}
-          className="bg-card rounded-xl border p-6 shadow-sm space-y-5"
+          className="bg-card rounded-xl border p-4 sm:p-6 shadow-sm space-y-5"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Image upload */}
             <div>
               <label
                 htmlFor="product-image"
-                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors bg-muted/30 overflow-hidden"
+                className="flex flex-col items-center justify-center w-full h-40 sm:h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors bg-muted/30 overflow-hidden"
               >
                 {imagePreview ? (
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -83,7 +87,7 @@ const AddProduct = () => {
                   <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" className="mt-1" required />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Quantity in stock</Label>
+                  <Label className="text-sm font-medium">Quantity</Label>
                   <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0" className="mt-1" required />
                 </div>
               </div>
@@ -96,7 +100,7 @@ const AddProduct = () => {
 
           {/* Summary */}
           <div className="border-t pt-4 space-y-2 text-sm text-muted-foreground">
-            <p>Estimated current stock cost: <span className="font-bold text-primary">GHS {estimatedCost.toLocaleString()}</span></p>
+            <p>Estimated stock cost: <span className="font-bold text-primary">GHS {estimatedCost.toLocaleString()}</span></p>
           </div>
 
           <div className="flex gap-3 pt-2">

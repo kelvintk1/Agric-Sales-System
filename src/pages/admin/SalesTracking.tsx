@@ -27,7 +27,7 @@ const SalesTracking = () => {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
         <div>
-          <h1 className="text-2xl font-display font-bold text-primary">Sales Tracking and Summary</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-primary">Sales Tracking and Summary</h1>
           <p className="text-sm text-muted-foreground">View your logged sales for convenient tracking</p>
         </div>
 
@@ -61,7 +61,7 @@ const SalesTracking = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="flex gap-3 items-center"
+          className="flex flex-col sm:flex-row gap-3 items-start sm:items-center"
         >
           <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs h-9" />
           <Select value={filter} onValueChange={setFilter}>
@@ -83,18 +83,18 @@ const SalesTracking = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-card rounded-xl border shadow-sm overflow-hidden"
+          className="bg-card rounded-xl border shadow-sm overflow-x-auto"
         >
           <Table>
             <TableHeader>
               <TableRow className="bg-primary/5">
-                <TableHead className="text-xs font-semibold text-primary">Customer Name</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Salesperson</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Product</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Amount (GHS)</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Qty</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Date</TableHead>
-                <TableHead className="text-xs font-semibold text-primary">Payment</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[110px]">Customer</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[110px]">Salesperson</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[80px]">Product</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[90px]">Amount</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[50px]">Qty</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[90px]">Date</TableHead>
+                <TableHead className="text-xs font-semibold text-primary min-w-[80px]">Payment</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,7 +109,7 @@ const SalesTracking = () => {
                   <TableCell className="text-xs font-medium">{sale.customer_name}</TableCell>
                   <TableCell className="text-xs">{sale.salesperson_name}</TableCell>
                   <TableCell className="text-xs">{sale.product_name}</TableCell>
-                  <TableCell className="text-xs font-semibold">{sale.total_amount}</TableCell>
+                  <TableCell className="text-xs font-semibold">GHS {sale.total_amount}</TableCell>
                   <TableCell className="text-xs">{sale.quantity}</TableCell>
                   <TableCell className="text-xs">{sale.transaction_date}</TableCell>
                   <TableCell>
