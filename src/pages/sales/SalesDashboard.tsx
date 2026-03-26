@@ -21,29 +21,28 @@ const SalesDashboard = () => {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
         <div>
-          <h1 className="text-2xl font-display font-bold text-primary">Sales Main Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-primary">Sales Dashboard</h1>
           <p className="text-sm text-muted-foreground">View analytics of sales that have been made</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Sales (Today)" value={`GHS ${totalSales.toLocaleString()}.00`} subtitle="Weekly Sales" icon={<DollarSign className="w-5 h-5" />} delay={0.1} />
-          <StatCard title="Transaction count (Today)" value={5} icon={<ArrowUpRight className="w-5 h-5" />} delay={0.15} />
-          <StatCard title="Customer count (Today)" value={mockCustomers.length} icon={<Users className="w-5 h-5" />} delay={0.2} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatCard title="Total Sales" value={`GHS ${totalSales.toLocaleString()}`} subtitle="Weekly Sales" icon={<DollarSign className="w-5 h-5" />} delay={0.1} />
+          <StatCard title="Transactions" value={5} icon={<ArrowUpRight className="w-5 h-5" />} delay={0.15} />
+          <StatCard title="Customers" value={mockCustomers.length} icon={<Users className="w-5 h-5" />} delay={0.2} />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
             className="bg-card rounded-xl border p-4 shadow-sm"
           >
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Top Selling Product</p>
-            <div className="flex items-center gap-3 mt-2">
-              <img src={topProduct.image_url} alt={topProduct.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Top Product</p>
+            <div className="flex items-center gap-2 sm:gap-3 mt-2">
+              <img src={topProduct.image_url} alt={topProduct.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover" loading="lazy" />
               <div>
-                <p className="font-bold text-foreground">{topProduct.name}</p>
-                <p className="text-xs text-muted-foreground">Price: GHS {topProduct.price_per_bag}</p>
+                <p className="font-bold text-foreground text-sm">{topProduct.name}</p>
+                <p className="text-xs text-muted-foreground">GHS {topProduct.price_per_bag}</p>
               </div>
             </div>
-            <button className="text-xs text-primary font-medium mt-2 hover:underline">View Inventory →</button>
           </motion.div>
         </div>
 
@@ -52,10 +51,10 @@ const SalesDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="lg:col-span-3 bg-card rounded-xl border p-5 shadow-sm"
+            className="lg:col-span-3 bg-card rounded-xl border p-4 sm:p-5 shadow-sm"
           >
-            <h3 className="font-semibold text-foreground mb-4">Sales Summary</h3>
-            <ResponsiveContainer width="100%" height={220}>
+            <h3 className="font-semibold text-foreground mb-4 text-sm sm:text-base">Sales Summary</h3>
+            <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={weeklySalesData}>
                 <defs>
                   <linearGradient id="colorSales2" x1="0" y1="0" x2="0" y2="1">
@@ -64,23 +63,22 @@ const SalesDashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(130, 20%, 88%)" />
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(140, 10%, 45%)" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(140, 10%, 45%)" />
+                <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(140, 10%, 45%)" />
+                <YAxis tick={{ fontSize: 10 }} stroke="hsl(140, 10%, 45%)" width={40} />
                 <Tooltip contentStyle={{ backgroundColor: 'hsl(0, 0%, 100%)', border: '1px solid hsl(130, 20%, 88%)', borderRadius: '8px', fontSize: '12px' }} />
                 <Area type="monotone" dataKey="amount" stroke="hsl(130, 60%, 25%)" strokeWidth={2} fill="url(#colorSales2)" />
               </AreaChart>
             </ResponsiveContainer>
-            <p className="text-xs text-muted-foreground mt-2 text-center">Day of the week</p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="lg:col-span-2 bg-card rounded-xl border p-5 shadow-sm"
+            className="lg:col-span-2 bg-card rounded-xl border p-4 sm:p-5 shadow-sm"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">Recent Transactions</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground text-sm sm:text-base">Recent Transactions</h3>
               <Calendar className="w-4 h-4 text-muted-foreground" />
             </div>
             <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-3 h-8 text-sm" />
@@ -91,7 +89,7 @@ const SalesDashboard = () => {
                     <p className="font-medium text-foreground text-xs">{sale.customer_name}</p>
                     <p className="text-xs text-muted-foreground">{sale.product_name}</p>
                   </div>
-                  <span className="font-semibold text-foreground text-sm">{sale.total_amount}</span>
+                  <span className="font-semibold text-foreground text-sm">GHS {sale.total_amount}</span>
                 </div>
               ))}
             </div>
