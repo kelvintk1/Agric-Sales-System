@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Leaf } from 'lucide-react';
+import farmHero from '@/assets/farm-hero.jpg';
+import dataEntryImg from '@/assets/data-entry-illustration.jpg';
+
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (login(username, password)) {
+      const isAdmin = username.toLowerCase().includes('admin');
+      navigate(isAdmin ? '/admin/dashboard' : '/sales/dashboard');
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left - Form */}
+      <motion.div
+        initial={{ opacity: 0, x: -40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full md:w-1/2 relative flex items-center justify-center"
+      >
+        {/* Background image with overlay */}
+        <div className="absolute inset-0">
+          <img src={farmHero} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/85 to-primary/60" />
+        </div>
+
+        {/* Form content */}
+        <div className="relative z-10 w-full max-w-sm px-8">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
+              <Leaf className="w-5 h-5 text-accent" />
+              <span className="text-primary-foreground font-medium text-sm">AgriSales</span>
+            </div>
+            <h1 className="text-3xl font-display font-bold text-primary-foreground">
+              {isSignup ? 'Sign Up' : 'Login'}
+            </h1>
+          </motion.div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Label className="text-primary-foreground/90 text-sm">Username:</Label>
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="mt-1.5 bg-primary-foreground/15 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:border-accent focus:ring-accent"
+                placeholder="Enter username"
+                required
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Label className="text-primary-foreground/90 text-sm">Password:</Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1.5 bg-primary-foreground/15 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:border-accent focus:ring-accent"
+                placeholder="Enter password"
+                required
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <Button
+                type="submit"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold h-11 text-base rounded-full shadow-lg"
+              >
+                {isSignup ? 'Signup' : 'Login'}
+              </Button>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-center text-sm text-primary-foreground/70"
+            >
+              {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                type="button"
+                onClick={() => setIsSignup(!isSignup)}
+                className="text-accent font-semibold hover:underline"
+              >
+                {isSignup ? 'Login' : 'Sign Up'}
+              </button>
+            </motion.p>
+          </form>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-center text-xs text-primary-foreground/50 mt-6"
+          >
+            Hint: Use "admin" in username for Admin, anything else for Salesperson
+          </motion.p>
+        </div>
+      </motion.div>
+
+      {/* Right - Illustration */}
+      <motion.div
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="hidden md:flex w-1/2 gradient-login items-center justify-center p-12"
+      >
+        <div className="text-center max-w-md">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-4xl font-display font-bold text-primary-foreground mb-4 leading-tight"
+          >
+            Data Entry<br />Made<br />Convenient
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, type: 'spring' }}
+          >
+            <img
+              src={dataEntryImg}
+              alt="Data entry illustration"
+              className="w-full max-w-xs mx-auto rounded-2xl shadow-2xl mt-6"
+              width={800}
+              height={800}
+            />
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Login;
