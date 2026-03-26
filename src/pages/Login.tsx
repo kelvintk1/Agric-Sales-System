@@ -131,7 +131,7 @@ const Login = () => {
             >
               <Button
                 type="submit"
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold h-11 text-base rounded-full shadow-lg"
+                className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 font-semibold h-11 text-base rounded-full shadow-lg"
               >
                 {isSignup ? 'Signup' : 'Login'}
               </Button>
