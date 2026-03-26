@@ -22,12 +22,23 @@ const Login = () => {
 
   useEffect(() => {
     let i = 0;
+    let deleting = false;
     const timer = setInterval(() => {
-      if (i <= fullText.length) {
-        setDisplayedText(fullText.slice(0, i));
-        i++;
+      if (!deleting) {
+        if (i <= fullText.length) {
+          setDisplayedText(fullText.slice(0, i));
+          i++;
+        } else {
+          deleting = true;
+          setTimeout(() => {}, 1200);
+        }
       } else {
-        clearInterval(timer);
+        if (i > 0) {
+          i--;
+          setDisplayedText(fullText.slice(0, i));
+        } else {
+          deleting = false;
+        }
       }
     }, 80);
     return () => clearInterval(timer);
