@@ -6,37 +6,76 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const UNITS = ['kg', 'g', 'litre', 'ml', 'bag', 'crate', 'piece', 'dozen'];
 
 const AddProduct = () => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [restockDate, setRestockDate] = useState('');
+  const [unit, setUnit] = useState('');                        // FIX 1: added unit field (backend requires it)
+  const [imageFile, setImageFile] = useState<File | null>(null); // FIX 2: store actual File, not just preview
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);                                      // FIX 3: save File object for FormData upload
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !price || !quantity) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-    toast.success('Product added successfully!', {
-      description: `${name} has been added to inventory.`,
-    });
+  const resetForm = () => {
     setName('');
     setPrice('');
     setQuantity('');
-    setRestockDate('');
+    setUnit('');
+    setImageFile(null);
     setImagePreview(null);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name || !price || !quantity || !unit) {
+      toast.error('Please fill all required fields including unit');
+      return;
+    }
+
+    // FIX 4: use FormData so the image file is sent as multipart (matches multer on backend)
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('quantityInStock', quantity);             // FIX 5: backend expects `quantityInStock` not `quantity`
+    formData.append('unit', unit);
+    if (imageFile) formData.append('image', imageFile);       // FIX 6: attach the actual file
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+
+      await axios.post('http://localhost:5000/api/products', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,                   // FIX 7: send JWT so backend knows you're admin
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      toast.success('Product added successfully!', {
+        description: `${name} has been added to inventory.`,
+      });
+      resetForm();
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to add product');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const estimatedCost = (parseFloat(price) || 0) * (parseInt(quantity) || 0);
@@ -91,9 +130,21 @@ const AddProduct = () => {
                   <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0" className="mt-1" required />
                 </div>
               </div>
+
+              {/* FIX 8: added unit dropdown — backend requires this field */}
               <div>
-                <Label className="text-sm font-medium">Last restock date</Label>
-                <Input type="date" value={restockDate} onChange={(e) => setRestockDate(e.target.value)} className="mt-1" />
+                <Label className="text-sm font-medium">Unit</Label>
+                <select
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  required
+                  className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="" disabled>Select unit</option>
+                  {UNITS.map(u => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -104,8 +155,10 @@ const AddProduct = () => {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" className="bg-primary text-primary-foreground px-8">Save</Button>
-            <Button type="button" variant="outline" onClick={() => { setName(''); setPrice(''); setQuantity(''); setRestockDate(''); setImagePreview(null); }}>Cancel</Button>
+            <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground px-8">
+              {loading ? 'Saving...' : 'Save'}
+            </Button>
+            <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
           </div>
         </motion.form>
       </motion.div>

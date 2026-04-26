@@ -120,11 +120,16 @@
     background: linear-gradient(180deg, hsl(130, 60%, 22%), hsl(130, 55%, 15%));
   }
 
-  .gradient-login {
-    background: linear-gradient(135deg, #207018 0%, #2a8a1e 30%, #EFFF09 60%, #3DD62F 80%, #207018 100%);
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite;
-  }
+.gradient-login {
+  background: linear-gradient(
+    135deg,
+    #1f6f1a 25%,
+    #2f8f1f 35%,
+    #cfff0a 65%,
+    #5fe02f 75%,
+    #2f8f1f 100%
+  );
+}
 
   @keyframes gradient-shift {
     0% { background-position: 0% 50%; }

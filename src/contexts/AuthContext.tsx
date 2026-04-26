@@ -1,10 +1,17 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { User, UserRole } from '@/types';
-import { mockUsers } from '@/data/mockData';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+// Shape of the user object returned by your backend
+interface AuthUser {
+  _id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'salesperson';
+  token: string;
+}
 
 interface AuthContextType {
-  user: User | null;
-  login: (username: string, password: string) => boolean;
+  user: AuthUser | null;
+  login: (data: AuthUser) => void;   // accepts the full backend response object
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -12,17 +19,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // Rehydrate from localStorage so user stays logged in on refresh
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
 
-  const login = (username: string, _password: string) => {
-    // Mock: admin login → admin user, else → salesperson
-    const isAdmin = username.toLowerCase().includes('admin');
-    const foundUser = isAdmin ? mockUsers[0] : mockUsers[1];
-    setUser(foundUser);
-    return true;
+  const login = (data: AuthUser) => {
+    setUser(data);
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>

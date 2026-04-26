@@ -4,36 +4,114 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockProducts } from '@/data/mockData';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  quantityInStock: number;
+  unit: string;
+}
+
+// Axios instance with auth token
+const api = axios.create({ baseURL: 'http://localhost:5000/api' });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 const SalesEntry = () => {
-  const [name, setName] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [customerName, setCustomerName] = useState('');
   const [contact, setContact] = useState('');
-  const [productId, setProductId] = useState('');
+  const [productName, setProductName] = useState('');   // backend expects name, not ID
   const [paymentMethod, setPaymentMethod] = useState('');
   const [bags, setBags] = useState('');
 
-  const selectedProduct = mockProducts.find(p => p.id === productId);
-  const unitPrice = selectedProduct?.price_per_bag || 0;
+  const selectedProduct = products.find(p => p.name === productName);
+  const unitPrice = selectedProduct?.price ?? 0;
   const totalAmount = unitPrice * (parseInt(bags) || 0);
   const timestamp = new Date().toLocaleString();
 
-  const handleSave = (e: React.FormEvent) => {
+  // Fetch product list to populate the dropdown
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get('/products');
+        setProducts(res.data);
+      } catch (err: any) {
+        toast.error('Could not load products', {
+          description: err.response?.data?.message || 'Check your connection.',
+        });
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const resetForm = () => {
+    setCustomerName('');
+    setContact('');
+    setProductName('');
+    setPaymentMethod('');
+    setBags('');
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productId || !paymentMethod) {
+    if (!productName || !paymentMethod) {
       toast.error('Please fill all required fields');
       return;
     }
-    toast.success('Sale logged successfully!', {
-      description: `${name} purchased ${bags} bags of ${selectedProduct?.name}.`,
-    });
-    setName('');
-    setContact('');
-    setProductId('');
-    setPaymentMethod('');
-    setBags('');
+
+    // Guard: don't allow more bags than stock
+    if (selectedProduct && parseInt(bags) > selectedProduct.quantityInStock) {
+      toast.error('Insufficient stock', {
+        description: `Only ${selectedProduct.quantityInStock} ${selectedProduct.unit}(s) available.`,
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Backend expects: { productName, bags, customerName, contact, paymentMethod }
+      await api.post('/sales', {
+        productName,
+        bags: parseInt(bags),
+        customerName,
+        contact,
+        paymentMethod,
+      });
+
+      toast.success('Sale logged successfully!', {
+        description: `${customerName} purchased ${bags} ${selectedProduct?.unit}(s) of ${productName}.`,
+      });
+
+      // Deduct locally so dropdown reflects updated stock without a refetch
+      setProducts(prev =>
+        prev.map(p =>
+          p.name === productName
+            ? { ...p, quantityInStock: p.quantityInStock - parseInt(bags) }
+            : p
+        )
+      );
+
+      resetForm();
+    } catch (err: any) {
+      toast.error('Failed to log sale', {
+        description: err.response?.data?.message || 'Something went wrong.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -53,32 +131,56 @@ const SalesEntry = () => {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium">Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Customer name" className="mt-1" required />
+              <Label className="text-sm font-medium">Customer Name</Label>
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Customer name"
+                className="mt-1"
+                required
+              />
             </div>
+
             <div>
               <Label className="text-sm font-medium">Product</Label>
-              <Select value={productId} onValueChange={setProductId}>
+              <Select value={productName} onValueChange={setProductName} disabled={loadingProducts}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select product" />
+                  <SelectValue placeholder={loadingProducts ? 'Loading...' : 'Select product'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockProducts.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  {products.map(p => (
+                    // value is product name — matches what backend expects
+                    <SelectItem key={p._id} value={p.name}>
+                      {p.name} ({p.quantityInStock} {p.unit}s left)
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label className="text-sm font-medium">Contact</Label>
-              <Input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Phone number" className="mt-1" required />
+              <Input
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                placeholder="Phone number"
+                className="mt-1"
+                required
+              />
             </div>
+
             <div>
-              <Label className="text-sm font-medium">Unit price</Label>
-              <Input value={unitPrice ? `GHS ${unitPrice.toFixed(2)}` : ''} readOnly className="mt-1 bg-muted/50" placeholder="Auto-generated" />
+              <Label className="text-sm font-medium">Unit Price</Label>
+              <Input
+                value={unitPrice ? `GHS ${unitPrice.toFixed(2)}` : ''}
+                readOnly
+                className="mt-1 bg-muted/50"
+                placeholder="Auto-generated"
+              />
             </div>
+
             <div>
-              <Label className="text-sm font-medium">Payment method</Label>
+              <Label className="text-sm font-medium">Payment Method</Label>
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select method" />
@@ -86,28 +188,52 @@ const SalesEntry = () => {
                 <SelectContent>
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="MoMo">MoMo</SelectItem>
-                  <SelectItem value="Bank">Bank</SelectItem>
+                  <SelectItem value="Bank Transfer">Bank</SelectItem>
                   <SelectItem value="POS">POS</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label className="text-sm font-medium">Bags</Label>
-              <Input type="number" value={bags} onChange={(e) => setBags(e.target.value)} placeholder="Number of bags" className="mt-1" required />
+              <Input
+                type="number"
+                min="1"
+                value={bags}
+                onChange={(e) => setBags(e.target.value)}
+                placeholder="Number of bags"
+                className="mt-1"
+                required
+              />
             </div>
+
             <div>
               <Label className="text-sm font-medium">Timestamp</Label>
               <Input value={timestamp} readOnly className="mt-1 bg-muted/50" />
             </div>
+
             <div>
               <Label className="text-sm font-medium">Total Amount</Label>
-              <Input value={totalAmount ? `GHS ${totalAmount.toFixed(2)}` : ''} readOnly className="mt-1 bg-muted/50" placeholder="Auto-generated" />
+              <Input
+                value={totalAmount ? `GHS ${totalAmount.toFixed(2)}` : ''}
+                readOnly
+                className="mt-1 bg-muted/50"
+                placeholder="Auto-generated"
+              />
             </div>
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" className="bg-primary text-primary-foreground px-8 sm:px-10">Save</Button>
-            <Button type="button" variant="outline" onClick={() => { setName(''); setContact(''); setProductId(''); setPaymentMethod(''); setBags(''); }}>Cancel</Button>
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="bg-primary text-primary-foreground px-8 sm:px-10"
+            >
+              {submitting ? 'Saving...' : 'Save'}
+            </Button>
+            <Button type="button" variant="outline" onClick={resetForm}>
+              Cancel
+            </Button>
           </div>
         </motion.form>
       </motion.div>

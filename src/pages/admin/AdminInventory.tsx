@@ -1,14 +1,14 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProductCard } from '@/components/shared/ProductCard';
-import { mockProducts } from '@/data/mockData';
 import { motion } from 'framer-motion';
-import { Product } from '@/types';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { ImagePlus } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,38 +20,114 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  quantityInStock: number;
+  unit: string;
+  image: string | null;
+  createdBy: string;
+}
+
+const api = axios.create({ baseURL: 'http://localhost:5000/api' });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+const getImageUrl = (image: string | null) =>
+  image ? `http://localhost:5000/${image}` : '/placeholder.png';
+
 const AdminInventory = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
+  const [editImage, setEditImage] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get('/products');
+        setProducts(res.data);
+      } catch (err: any) {
+        toast.error('Failed to load products', {
+          description: err.response?.data?.message || 'Check your connection.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleEdit = (product: Product) => {
     setEditProduct(product);
-    setEditPrice(product.price_per_bag.toString());
-    setEditQuantity(product.quantity_in_stock.toString());
+    setEditPrice(product.price.toString());
+    setEditQuantity(product.quantityInStock.toString());
+    setEditImage(null);
+    setEditImagePreview(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImage(file);
+    setEditImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleSaveEdit = async () => {
     if (!editProduct) return;
-    setProducts(prev =>
-      prev.map(p =>
-        p.id === editProduct.id
-          ? { ...p, price_per_bag: parseFloat(editPrice) || p.price_per_bag, quantity_in_stock: parseInt(editQuantity) || p.quantity_in_stock }
-          : p
-      )
-    );
-    toast.success('Product updated!', { description: `${editProduct.name} has been updated.` });
-    setEditProduct(null);
+    setSaving(true);
+    try {
+      // Use FormData so multer on the backend can receive the file
+      const formData = new FormData();
+      formData.append('price', editPrice);
+      formData.append('quantityInStock', editQuantity);
+      if (editImage) {
+        formData.append('image', editImage);
+      }
+
+      const res = await api.put(`/products/${editProduct._id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setProducts(prev =>
+        prev.map(p => (p._id === editProduct._id ? res.data.product : p))
+      );
+      toast.success('Product updated!', { description: `${editProduct.name} has been updated.` });
+      setEditProduct(null);
+    } catch (err: any) {
+      toast.error('Update failed', {
+        description: err.response?.data?.message || 'Something went wrong.',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteProduct) return;
-    setProducts(prev => prev.filter(p => p.id !== deleteProduct.id));
-    toast.success('Product deleted!', { description: `${deleteProduct.name} has been removed.` });
-    setDeleteProduct(null);
+    try {
+      await api.delete(`/products/${deleteProduct._id}`);
+      setProducts(prev => prev.filter(p => p._id !== deleteProduct._id));
+      toast.success('Product deleted!', { description: `${deleteProduct.name} has been removed.` });
+      setDeleteProduct(null);
+    } catch (err: any) {
+      toast.error('Delete failed', {
+        description: err.response?.data?.message || 'Something went wrong.',
+      });
+    }
   };
+
+  const dialogImageSrc = editImagePreview ?? getImageUrl(editProduct?.image ?? null);
 
   return (
     <DashboardLayout>
@@ -61,19 +137,25 @@ const AdminInventory = () => {
           <p className="text-sm text-muted-foreground">View all products you have in stock</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {products.map((product, i) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              index={i}
-              showEdit
-              onEdit={handleEdit}
-              showDelete
-              onDelete={setDeleteProduct}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center text-muted-foreground py-12">Loading products...</div>
+        ) : products.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12">No products found.</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {products.map((product, i) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                index={i}
+                showEdit
+                onEdit={handleEdit}
+                showDelete
+                onDelete={setDeleteProduct}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Edit Product Dialog */}
@@ -86,7 +168,30 @@ const AdminInventory = () => {
           {editProduct && (
             <div className="space-y-4">
               <div className="flex gap-4">
-                <img src={editProduct.image_url} alt={editProduct.name} className="w-28 h-28 sm:w-32 sm:h-32 rounded-lg object-cover" />
+                {/* Image — hover to change */}
+                <div className="relative group w-28 h-28 sm:w-32 sm:h-32 shrink-0">
+                  <img
+                    src={dialogImageSrc}
+                    alt={editProduct.name}
+                    className="w-full h-full rounded-lg object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ImagePlus className="w-5 h-5 text-white" />
+                    <span className="text-white text-[10px]">Change</span>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+
                 <div className="space-y-3 flex-1">
                   <div>
                     <Label className="text-xs">Unit price (GHS)</Label>
@@ -106,14 +211,28 @@ const AdminInventory = () => {
                       className="mt-1 h-9"
                     />
                   </div>
+                  {editImage && (
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      New: {editImage.name}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <div className="text-sm space-y-2 text-muted-foreground">
-                <p>Last restock date: <span className="text-foreground">{editProduct.last_restock_date}</span></p>
-                <p>Estimated stock cost: <span className="font-bold text-primary">GHS {((parseInt(editQuantity) || 0) * (parseFloat(editPrice) || 0)).toLocaleString()}</span></p>
+                <p>Unit: <span className="text-foreground">{editProduct.unit}</span></p>
+                <p>
+                  Estimated stock cost:{' '}
+                  <span className="font-bold text-primary">
+                    GHS {((parseInt(editQuantity) || 0) * (parseFloat(editPrice) || 0)).toLocaleString()}
+                  </span>
+                </p>
               </div>
+
               <div className="flex gap-3 pt-2">
-                <Button size="sm" onClick={handleSaveEdit} className="bg-primary text-primary-foreground">Save</Button>
+                <Button size="sm" onClick={handleSaveEdit} disabled={saving} className="bg-primary text-primary-foreground">
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setEditProduct(null)}>Cancel</Button>
               </div>
             </div>
@@ -126,11 +245,18 @@ const AdminInventory = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {deleteProduct?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. This product will be permanently removed from inventory.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This action cannot be undone. This product will be permanently removed from inventory.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

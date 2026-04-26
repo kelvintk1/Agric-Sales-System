@@ -1,6 +1,15 @@
 import { motion } from 'framer-motion';
-import { Product } from '@/types';
 import { Pencil, Trash2 } from 'lucide-react';
+
+// Real backend product shape — no longer using the mock Product type
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  quantityInStock: number;
+  unit: string;
+  image: string | null;
+}
 
 interface ProductCardProps {
   product: Product;
@@ -21,7 +30,7 @@ export const ProductCard = ({ product, index, onEdit, showEdit = false, onDelete
   >
     <div className="relative h-28 sm:h-36 overflow-hidden">
       <img
-        src={product.image_url}
+        src={product.image ? `http://localhost:5000/${product.image}` : '/placeholder.png'}
         alt={product.name}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"
@@ -48,10 +57,10 @@ export const ProductCard = ({ product, index, onEdit, showEdit = false, onDelete
     <div className="p-2.5 sm:p-3">
       <h3 className="font-semibold text-foreground text-xs sm:text-sm">{product.name}</h3>
       <div className="mt-1 sm:mt-1.5 space-y-0.5 text-[10px] sm:text-xs text-muted-foreground">
-        <p>Qty: <span className="font-semibold text-primary">{product.quantity_in_stock}</span> bags</p>
-        <p>Price: <span className="font-semibold text-foreground">GHS {product.price_per_bag.toFixed(2)}</span></p>
+        <p>Qty: <span className="font-semibold text-primary">{product.quantityInStock ?? 0}</span> {product.unit}</p>
+        <p>Price: <span className="font-semibold text-foreground">GHS {(product.price ?? 0).toFixed(2)}</span></p>
         <p className="font-semibold text-primary">
-          Total: GHS {(product.quantity_in_stock * product.price_per_bag).toFixed(0)}
+          Total: GHS {((product.quantityInStock ?? 0) * (product.price ?? 0)).toFixed(0)}
         </p>
       </div>
     </div>
