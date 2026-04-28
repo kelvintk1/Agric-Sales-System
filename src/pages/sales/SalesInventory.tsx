@@ -3,7 +3,7 @@ import { ProductCard } from '@/components/shared/ProductCard';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/api';
 
 interface Product {
   _id: string;
@@ -13,13 +13,6 @@ interface Product {
   unit: string;
   image: string | null;
 }
-
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 const SalesInventory = () => {
   const [products, setProducts] = useState<Product[]>([]);

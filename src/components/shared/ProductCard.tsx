@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Pencil, Trash2 } from 'lucide-react';
 
-// Real backend product shape — no longer using the mock Product type
 interface Product {
   _id: string;
   name: string;
@@ -30,7 +29,7 @@ export const ProductCard = ({ product, index, onEdit, showEdit = false, onDelete
   >
     <div className="relative h-28 sm:h-36 overflow-hidden">
       <img
-        src={product.image ? `http://localhost:5000/${product.image}` : '/placeholder.png'}
+        src={product.image ? `https://agric-sales-backend.onrender.com/${product.image}` : '/placeholder.png'}
         alt={product.name}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"

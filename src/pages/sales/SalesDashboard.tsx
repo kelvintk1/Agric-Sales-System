@@ -6,9 +6,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/api';
 
-// Shape returned by GET /api/sales/mine (populated)
 interface Sale {
   _id: string;
   customerName: string;
@@ -20,14 +19,6 @@ interface Sale {
   createdAt: string;
 }
 
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-// Group sales by day-of-week for the area chart
 const buildWeeklyData = (sales: Sale[]) => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const totals: Record<string, number> = {};
@@ -47,7 +38,6 @@ const SalesDashboard = () => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        // Salesperson sees only their own sales
         const res = await api.get('/sales/mine');
         setSales(res.data);
       } catch (err: any) {
@@ -112,8 +102,6 @@ const SalesDashboard = () => {
                 icon={<Users className="w-5 h-5" />}
                 delay={0.2}
               />
-
-              {/* Top product card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -129,7 +117,6 @@ const SalesDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              {/* Area chart */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -162,7 +149,6 @@ const SalesDashboard = () => {
                 </ResponsiveContainer>
               </motion.div>
 
-              {/* Recent transactions */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

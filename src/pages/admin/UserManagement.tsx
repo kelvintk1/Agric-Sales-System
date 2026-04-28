@@ -19,7 +19,7 @@ import {
 import { Trash2, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/api';
 
 interface User {
   _id: string;
@@ -28,20 +28,12 @@ interface User {
   role: 'admin' | 'salesperson';
 }
 
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
-  // Create user form state
   const [showCreate, setShowCreate] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -49,7 +41,6 @@ const UserManagement = () => {
   const [newRole, setNewRole] = useState<'admin' | 'salesperson'>('salesperson');
   const [creating, setCreating] = useState(false);
 
-  // Delete state
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -97,7 +88,6 @@ const UserManagement = () => {
         password: newPassword,
         role: newRole,
       });
-      // Add newly created user to local list
       setUsers(prev => [...prev, res.data.user]);
       toast.success('User created!', { description: `${newUsername} has been added.` });
       setShowCreate(false);

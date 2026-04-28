@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Users, ShoppingCart, AlertTriangle } from 'lucide-react';
-import axios from 'axios';
+import api from '@/lib/api';
 
 interface Sale {
   _id: string;
@@ -31,13 +31,6 @@ interface User {
   _id: string;
   role: 'admin' | 'salesperson';
 }
-
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 const SalesTracking = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -71,8 +64,6 @@ const SalesTracking = () => {
 
   const salespersonCount = users.filter(u => u.role === 'salesperson').length;
   const uniqueCustomers = new Set(sales.map(s => s.customerName)).size;
-
-  // Low stock threshold: fewer than 100 units
   const lowStock = products.filter(p => p.quantityInStock < 100);
 
   const filteredSales = sales.filter(s => {
@@ -96,7 +87,6 @@ const SalesTracking = () => {
           <div className="text-center text-muted-foreground py-12">Loading data...</div>
         ) : (
           <>
-            {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatCard
                 title="Total Customer Count"
@@ -112,8 +102,6 @@ const SalesTracking = () => {
                 icon={<ShoppingCart className="w-5 h-5" />}
                 delay={0.15}
               />
-
-              {/* Low stock card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -138,7 +126,6 @@ const SalesTracking = () => {
               </motion.div>
             </div>
 
-            {/* Filters */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -165,7 +152,6 @@ const SalesTracking = () => {
               </Select>
             </motion.div>
 
-            {/* Table */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -214,7 +200,7 @@ const SalesTracking = () => {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             sale.paymentMethod === 'MoMo' ? 'bg-accent/20 text-accent-foreground' :
                             sale.paymentMethod === 'Cash' ? 'bg-success/20 text-success' :
-                            sale.paymentMethod === 'Bank' ? 'bg-primary/10 text-primary' :
+                            sale.paymentMethod === 'Bank Transfer' ? 'bg-primary/10 text-primary' :
                             'bg-muted text-muted-foreground'
                           }`}>
                             {sale.paymentMethod}

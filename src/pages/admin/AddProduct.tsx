@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/api';
 
 const UNITS = ['kg', 'g', 'litre', 'ml', 'bag', 'crate', 'piece', 'dozen'];
 
@@ -14,15 +14,15 @@ const AddProduct = () => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState('');                        // FIX 1: added unit field (backend requires it)
-  const [imageFile, setImageFile] = useState<File | null>(null); // FIX 2: store actual File, not just preview
+  const [unit, setUnit] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);                                      // FIX 3: save File object for FormData upload
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -46,23 +46,18 @@ const AddProduct = () => {
       return;
     }
 
-    // FIX 4: use FormData so the image file is sent as multipart (matches multer on backend)
     const formData = new FormData();
     formData.append('name', name);
     formData.append('price', price);
-    formData.append('quantityInStock', quantity);             // FIX 5: backend expects `quantityInStock` not `quantity`
+    formData.append('quantityInStock', quantity);
     formData.append('unit', unit);
-    if (imageFile) formData.append('image', imageFile);       // FIX 6: attach the actual file
+    if (imageFile) formData.append('image', imageFile);
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
 
-      await axios.post('http://localhost:5000/api/products', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,                   // FIX 7: send JWT so backend knows you're admin
-          'Content-Type': 'multipart/form-data',
-        },
+      await api.post('/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       toast.success('Product added successfully!', {
@@ -130,8 +125,6 @@ const AddProduct = () => {
                   <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0" className="mt-1" required />
                 </div>
               </div>
-
-              {/* FIX 8: added unit dropdown — backend requires this field */}
               <div>
                 <Label className="text-sm font-medium">Unit</Label>
                 <select
@@ -149,7 +142,6 @@ const AddProduct = () => {
             </div>
           </div>
 
-          {/* Summary */}
           <div className="border-t pt-4 space-y-2 text-sm text-muted-foreground">
             <p>Estimated stock cost: <span className="font-bold text-primary">GHS {estimatedCost.toLocaleString()}</span></p>
           </div>

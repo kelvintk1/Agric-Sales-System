@@ -2,13 +2,13 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProductCard } from '@/components/shared/ProductCard';
 import { motion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ImagePlus } from 'lucide-react';
+import api from '@/lib/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,15 +30,8 @@ interface Product {
   createdBy: string;
 }
 
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
 const getImageUrl = (image: string | null) =>
-  image ? `http://localhost:5000/${image}` : '/placeholder.png';
+  image ? `https://agric-sales-backend.onrender.com/${image}` : '/placeholder.png';
 
 const AdminInventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -87,13 +80,10 @@ const AdminInventory = () => {
     if (!editProduct) return;
     setSaving(true);
     try {
-      // Use FormData so multer on the backend can receive the file
       const formData = new FormData();
       formData.append('price', editPrice);
       formData.append('quantityInStock', editQuantity);
-      if (editImage) {
-        formData.append('image', editImage);
-      }
+      if (editImage) formData.append('image', editImage);
 
       const res = await api.put(`/products/${editProduct._id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -168,7 +158,6 @@ const AdminInventory = () => {
           {editProduct && (
             <div className="space-y-4">
               <div className="flex gap-4">
-                {/* Image — hover to change */}
                 <div className="relative group w-28 h-28 sm:w-32 sm:h-32 shrink-0">
                   <img
                     src={dialogImageSrc}

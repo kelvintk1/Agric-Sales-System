@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import axios from "axios";
+import api from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,10 @@ import farmHero from '@/assets/hero.png';
 import dataEntryImg from '@/assets/data-entry-ill.png';
 
 const Login = () => {
-  const [email, setEmail] = useState('');           // FIX 1: renamed to `email` to match backend & input binding
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);    // FIX 2: renamed from `isSignup` — this toggle is for display only
-  const [error, setError] = useState('');           // FIX 3: added error state instead of alert()
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
@@ -61,31 +61,31 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email,       // FIX 4: was sending `username` but backend expects `email`
-        password,
-      });
-
+      const res = await api.post('/auth/login', { email, password });
       const data = res.data;
 
-      // Persist token and user info
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data));
-
-      // Update auth context
-      login(data);
-
-      // Redirect based on role returned from backend
-      if (data.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/sales/dashboard");
+      // Block if role doesn't match the selected login type
+      if (isAdmin && data.role !== 'admin') {
+        setError('Invalid credentials.');
+        return;
+      }
+      if (!isAdmin && data.role !== 'salesperson') {
+        setError('Invalid credentials.');
+        return;
       }
 
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data));
+      login(data);
+
+      if (data.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/sales/dashboard');
+      }
     } catch (err) {
       console.error(err);
-      // FIX 5: show error inline instead of alert()
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -100,13 +100,11 @@ const Login = () => {
         transition={{ duration: 0.6 }}
         className="w-full md:w-1/2 relative flex items-center justify-center"
       >
-        {/* Background image */}
         <div className="absolute inset-0">
           <img src={farmHero} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0" />
         </div>
 
-        {/* Form content */}
         <div className="relative z-10 w-full max-w-sm px-8">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -118,7 +116,6 @@ const Login = () => {
               <Leaf className="w-5 h-5 text-accent" />
               <span className="text-primary-foreground font-medium text-sm">AgriSales</span>
             </div>
-            {/* FIX 6: corrected label — isAdmin drives the heading text */}
             <h1 className="text-3xl font-display font-bold text-primary-foreground">
               {isAdmin ? 'Admin Login' : 'Salesperson Login'}
             </h1>
@@ -133,7 +130,7 @@ const Login = () => {
               <Label className="text-primary-foreground/90 text-sm">Email:</Label>
               <Input
                 type="email"
-                value={email}                          // FIX 7: was `value={email}` referencing undefined var
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5 bg-primary-foreground/15 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:border-accent focus:ring-accent"
                 placeholder="Enter email"
@@ -157,7 +154,6 @@ const Login = () => {
               />
             </motion.div>
 
-            {/* FIX 8: inline error message */}
             {error && (
               <motion.p
                 initial={{ opacity: 0 }}
@@ -178,7 +174,7 @@ const Login = () => {
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 font-semibold h-11 text-base rounded-full shadow-lg disabled:opacity-60"
               >
-                {loading ? 'Logging in...' : 'Login'}   {/* FIX 9: loading state feedback */}
+                {loading ? 'Logging in...' : 'Login'}
               </Button>
             </motion.div>
 
@@ -191,10 +187,10 @@ const Login = () => {
               {isAdmin ? 'Are you a Salesperson?' : 'Are you an Admin?'}{' '}
               <button
                 type="button"
-                onClick={() => setIsAdmin(!isAdmin)}
+                onClick={() => { setIsAdmin(!isAdmin); setError(''); }}
                 className="text-accent font-semibold hover:underline"
               >
-                {isAdmin ? 'Login here' : 'Login here'}
+                Login here
               </button>
             </motion.p>
           </form>

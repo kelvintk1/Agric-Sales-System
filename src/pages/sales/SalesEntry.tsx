@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/api';
 
 interface Product {
   _id: string;
@@ -16,14 +16,6 @@ interface Product {
   unit: string;
 }
 
-// Axios instance with auth token
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
 const SalesEntry = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -31,7 +23,7 @@ const SalesEntry = () => {
 
   const [customerName, setCustomerName] = useState('');
   const [contact, setContact] = useState('');
-  const [productName, setProductName] = useState('');   // backend expects name, not ID
+  const [productName, setProductName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [bags, setBags] = useState('');
 
@@ -40,7 +32,6 @@ const SalesEntry = () => {
   const totalAmount = unitPrice * (parseInt(bags) || 0);
   const timestamp = new Date().toLocaleString();
 
-  // Fetch product list to populate the dropdown
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -72,7 +63,6 @@ const SalesEntry = () => {
       return;
     }
 
-    // Guard: don't allow more bags than stock
     if (selectedProduct && parseInt(bags) > selectedProduct.quantityInStock) {
       toast.error('Insufficient stock', {
         description: `Only ${selectedProduct.quantityInStock} ${selectedProduct.unit}(s) available.`,
@@ -82,7 +72,6 @@ const SalesEntry = () => {
 
     setSubmitting(true);
     try {
-      // Backend expects: { productName, bags, customerName, contact, paymentMethod }
       await api.post('/sales', {
         productName,
         bags: parseInt(bags),
@@ -95,7 +84,6 @@ const SalesEntry = () => {
         description: `${customerName} purchased ${bags} ${selectedProduct?.unit}(s) of ${productName}.`,
       });
 
-      // Deduct locally so dropdown reflects updated stock without a refetch
       setProducts(prev =>
         prev.map(p =>
           p.name === productName
@@ -149,7 +137,6 @@ const SalesEntry = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {products.map(p => (
-                    // value is product name — matches what backend expects
                     <SelectItem key={p._id} value={p.name}>
                       {p.name} ({p.quantityInStock} {p.unit}s left)
                     </SelectItem>
