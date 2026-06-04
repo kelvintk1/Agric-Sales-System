@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Welcome to The Agric-Sales-System project
 
-TODO: Document your project here
+This project system is to help frontdesk salespersonnels and admin manage sales records effectively.
