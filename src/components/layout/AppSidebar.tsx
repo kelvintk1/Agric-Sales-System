@@ -56,7 +56,7 @@ export const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
         initial={{ x: -280 }}
         animate={{ x: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="gradient-sidebar w-[220px] min-h-screen flex flex-col text-sidebar-foreground fixed left-0 top-0 z-40"
+        className="gradient-sidebar w-[220px] h-full min-h-full flex flex-col text-sidebar-foreground fixed left-0 top-0 z-40"
         style={onNavigate ? { position: 'relative', zIndex: 'auto' } : undefined}
       >
         {/* Header */}

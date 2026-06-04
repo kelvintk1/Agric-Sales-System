@@ -30,18 +30,13 @@ export const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <Menu className="w-5 h-5" />
           </Button>
           <span className="font-display font-bold text-primary text-lg">AgriSales</span>
-          <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
         </header>
       )}
 
       {/* Mobile sidebar sheet */}
       {isMobile && (
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="p-0 w-[260px]">
+          <SheetContent side="left" className="p-0 w-[260px] h-full overflow-y-auto">
             <AppSidebar onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>
