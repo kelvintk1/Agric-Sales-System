@@ -212,12 +212,12 @@ const Login = () => {
             </motion.p>
           </form>
 
-          {/* Demo credentials for quick demoing */}
+          {/* Demo credentials for a quick demo */}
           <div className="mt-6">
             <div className="text-sm text-primary-foreground/70 mb-2">Demo credentials (tap to autofill):</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-primary-foreground/6 border border-primary-foreground/10 rounded-lg p-3">
-                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Admin</div>
+                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Admin:</div>
                 <div className="text-sm text-primary-foreground/90">{demoAdmin.email}</div>
                 <div className="text-sm text-primary-foreground/70 mb-3">{demoAdmin.password}</div>
                 <div className="flex justify-center">
@@ -228,7 +228,7 @@ const Login = () => {
               </div>
 
               <div className="bg-primary-foreground/6 border border-primary-foreground/10 rounded-lg p-3">
-                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Salesperson</div>
+                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Salesperson:</div>
                 <div className="text-sm text-primary-foreground/90">{demoSales.email}</div>
                 <div className="text-sm text-primary-foreground/70 mb-3">{demoSales.password}</div>
                 <div className="flex justify-center">
