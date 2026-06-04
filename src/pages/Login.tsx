@@ -33,7 +33,7 @@ const Login = () => {
     }
   };
 
-  const useCredentials = (creds: { email: string; password: string }) => {
+  const fillCredentials = (creds: { email: string; password: string }) => {
     setEmail(creds.email);
     setPassword(creds.password);
   };
@@ -221,7 +221,7 @@ const Login = () => {
                 <div className="text-sm text-primary-foreground/90">{demoAdmin.email}</div>
                 <div className="text-sm text-primary-foreground/70 mb-3">{demoAdmin.password}</div>
                 <div className="flex justify-center">
-                  <Button size="sm" onClick={() => useCredentials(demoAdmin)}>
+                  <Button size="sm" onClick={() => fillCredentials(demoAdmin)}>
                     Use
                   </Button>
                 </div>
@@ -232,7 +232,7 @@ const Login = () => {
                 <div className="text-sm text-primary-foreground/90">{demoSales.email}</div>
                 <div className="text-sm text-primary-foreground/70 mb-3">{demoSales.password}</div>
                 <div className="flex justify-center">
-                  <Button size="sm" onClick={() => useCredentials(demoSales)}>
+                  <Button size="sm" onClick={() => fillCredentials(demoSales)}>
                     Use
                   </Button>
                 </div>
