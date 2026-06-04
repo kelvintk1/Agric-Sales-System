@@ -1,13 +1,22 @@
 import { ReactNode, useState } from 'react';
 import { AppSidebar } from './AppSidebar';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -21,6 +30,11 @@ export const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <Menu className="w-5 h-5" />
           </Button>
           <span className="font-display font-bold text-primary text-lg">AgriSales</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </header>
       )}
 

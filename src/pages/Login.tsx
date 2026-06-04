@@ -21,6 +21,23 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Demo credentials for quick access
+  const demoAdmin = { email: 'admin@gmail.com', password: 'qwerty' };
+  const demoSales = { email: 'sales2@gmail.com', password: 'sales2' };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Clipboard error', err);
+    }
+  };
+
+  const useCredentials = (creds: { email: string; password: string }) => {
+    setEmail(creds.email);
+    setPassword(creds.password);
+  };
+
   const fullText = 'Data Entry\nMade\nConvenient👍';
 
   useEffect(() => {
@@ -194,6 +211,34 @@ const Login = () => {
               </button>
             </motion.p>
           </form>
+
+          {/* Demo credentials for quick demoing */}
+          <div className="mt-6">
+            <div className="text-sm text-primary-foreground/70 mb-2">Demo credentials (tap to autofill):</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-primary-foreground/6 border border-primary-foreground/10 rounded-lg p-3">
+                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Admin</div>
+                <div className="text-sm text-primary-foreground/90">{demoAdmin.email}</div>
+                <div className="text-sm text-primary-foreground/70 mb-3">{demoAdmin.password}</div>
+                <div className="flex justify-center">
+                  <Button size="sm" onClick={() => useCredentials(demoAdmin)}>
+                    Use
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-primary-foreground/6 border border-primary-foreground/10 rounded-lg p-3">
+                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">Salesperson</div>
+                <div className="text-sm text-primary-foreground/90">{demoSales.email}</div>
+                <div className="text-sm text-primary-foreground/70 mb-3">{demoSales.password}</div>
+                <div className="flex justify-center">
+                  <Button size="sm" onClick={() => useCredentials(demoSales)}>
+                    Use
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
 
